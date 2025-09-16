@@ -7,6 +7,8 @@ import streamlit as st
 import pandas as pd
 from dotenv import load_dotenv
 
+#from utils import scroll_to_top
+
 # Define survey flow
 steps = ["consent", "demographics", "baseline", "session_emp", "session_neu", "open", "review"]
 
@@ -37,6 +39,7 @@ if not HF_DATASET_REPO:
 client = ElevenLabs(api_key=ELEVENLABS_API_KEY)
 hf_api = HfApi()
 HfFolder.save_token(HF_TOKEN)
+
 
 st.set_page_config(page_title="Empathetic vs. Neutral AI Voice Study", page_icon="🎙", layout="centered")
 
@@ -141,6 +144,19 @@ def init_state():
 def section_header(text):
     st.markdown(f"### {text}")
 
+
+init_state()
+def scroll_to_top():
+    if st.session_state.get("step_changed", False):
+        st.markdown(
+            "<script>window.scrollTo({top: 0, behavior: 'smooth'});</script>",
+            unsafe_allow_html=True
+        )
+        st.session_state["step_changed"] = False
+
+# Call this once, globally, before sections
+scroll_to_top()
+
 def show_progress():
     current_step = st.session_state.get("step", "consent")
     current_index = steps.index(current_step)
@@ -148,25 +164,29 @@ def show_progress():
     st.progress(progress)
     st.write(f"Step {current_index + 1} of {len(steps)}")
 
-init_state()
 show_progress() # Show progress bar
 
+# Call this immediately after session_state["step"] changes
 def navigation_buttons(prev_step=None, next_step=None, prev_label="⬅ Back", next_label="Continue ➡"):
     cols = st.columns([1,1])
     with cols[0]:
         if prev_step and st.button(prev_label, key=f"back_{prev_step}"):
             st.session_state["step"] = prev_step
-            st.rerun()  # refresh to show previous step
+            st.session_state["step_changed"] = True
+            st.rerun()
     with cols[1]:
         if next_step and st.button(next_label, key=f"next_{next_step}"):
             st.session_state["step"] = next_step
-            st.rerun()  # refresh to show next step
+            st.session_state["step_changed"] = True
+            st.rerun()
+
 
 
 
 # Initialize session state
 if "step" not in st.session_state:
     st.session_state["step"] = "consent"
+    
 
 # -----------------------------
 # CONSENT
