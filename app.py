@@ -154,7 +154,6 @@ def scroll_to_top():
         )
         st.session_state["step_changed"] = False
 
-# Call this once, globally, before sections
 scroll_to_top()
 
 def show_progress():
